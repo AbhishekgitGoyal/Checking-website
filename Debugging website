@@ -1,0 +1,63 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <set>
+class InvestmentClaimClassifier {
+public:
+    void LoadTrainingData(const std::string& positiveDataFile, const std::string& negativeDataFile) {
+        LoadKeywordsFromFile(positiveDataFile, positiveKeywords);
+        LoadKeywordsFromFile(negativeDataFile, negativeKeywords);
+    }
+
+    bool Classify(const std::string& text) {
+        std::string lowercaseText = text;
+        transform (lowercaseText.begin(), lowercaseText.end(), lowercaseText.begin(), ::tolower);
+
+        for (const auto& keyword : positiveKeywords) {
+            if (lowercaseText.find(keyword) != std::string::npos) {
+                return true; // Positive classification
+            }
+        }
+        for (const auto& keyword : negativeKeywords) {
+            if (lowercaseText.find(keyword) != std::string::npos) {
+                return false; // Negative classification
+            }
+        }
+        return false; // Default: not identified as misleading
+    }
+
+private:
+    void LoadKeywordsFromFile(const std::string& filename, std::set<std::string>& keywords) {
+        std::ifstream file(filename);
+        if (file.is_open()) {
+            std::string keyword;
+            while (getline(file, keyword)) {
+                keywords.insert(keyword);
+            }
+            file.close();
+        } else {
+            std::cerr << "Error: Unable to open file " << filename << std::endl;
+        }
+    }
+    std::set<std::string> positiveKeywords;
+    std::set<std::string> negativeKeywords;
+};
+int main() {
+InvestmentClaimClassifier classifier;
+
+// Load training data from files (positive.txt and negative.txt)
+classifier.LoadTrainingData("positive.txt", "negative.txt");
+
+// Example text to classify
+std::string text = "Invest in this opportunity for guaranteed profit!";
+bool isMisleading = classifier.Classify(text);
+if (isMisleading) {
+    std::cout << "Alert: Misleading Investment Claim!" << std::endl;
+} else {
+    std::cout << "This investment claim is not misleading." << std::endl;
+}
+return 0;
+}
+
